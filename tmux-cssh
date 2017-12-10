@@ -9,6 +9,7 @@ FILENAME=""
 SSH_COMMAND="ssh"
 SSH_ARGS=""
 SYNCHRONIZE_PANES="true"
+ATTACH="true"
 TMUX_LAYOUT="tiled"
 
 # Config-file in home directory
@@ -64,6 +65,7 @@ syntax() {
 
 	echo "-dc | --dont-clusterize                    Don't clusterize ..."
 	echo "-ds | --dont-synchronize                   Don't synchronize keyboard in panes, default: tmux should synchronize."
+	echo "-da | --dont-attach                        Don't attach; De-attach from tmux session"
 	echo
 
 	echo "-cf | --config-file                        Config-file to use, (Default ${USE_CONFIG_FILENAME}), Designed for option to switch between multiples config-files via one tmux-cssh call."
@@ -119,6 +121,7 @@ analyseParameters() {
 				get_parameters_from_config_settings_name "$2"
 				shift;;
 			-dc|--dont-clusterize|-ds|--dont-synchronize) SYNCHRONIZE_PANES="false";;
+			-da|--dont-attach) ATTACH="false";;
 			-cf|--config-file) USE_CONFIG_FILENAME="$2"; shift;;
 			*)
 				if [ "$1" != "" ]; then
@@ -229,7 +232,9 @@ if tmux ls 2> /dev/null | grep -q "${TMUX_SESSION_NAME}"; then
 	synchronizePanes ${SYNCHRONIZE_PANES} ${TMUX_SESSION_NAME}
 
 	# Attach to available tmux-session
-	tmux attach -t "${TMUX_SESSION_NAME}"
+	if [ "$ATTACH" == "true" ]; then
+            tmux attach -t "${TMUX_SESSION_NAME}"
+        fi
 	exit
 fi
 
@@ -315,4 +320,6 @@ fi
 synchronizePanes ${SYNCHRONIZE_PANES} ${TMUX_SESSION_NAME}
 
 # Attach to tmux session
-tmux attach-session -t "${TMUX_SESSION_NAME}"
+if [ "$ATTACH" == "true" ]; then
+    tmux attach-session -t "${TMUX_SESSION_NAME}"
+fi
